@@ -41,6 +41,11 @@ const addContact = async ({
     } else {
       const body = await request.body();
       const contact = await body.value;
+      if (body.type === "form") {
+        contact = Object.fromEntries(contact.entries);
+      } else if (body.type === "json") {
+        contact = JSON.stringify(contact);
+      }
       await contacts.insertOne(contact);
       response.status = 201;
       response.body = {
