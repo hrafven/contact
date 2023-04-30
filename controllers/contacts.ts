@@ -1,4 +1,5 @@
 import { MongoClient } from "https://deno.land/x/mongo/mod.ts";
+import { Request, Response } from "https://deno.land/x/oak@v12.3.0/mod.ts";
 
 const MONGO_URI = Deno.env.get("MONGO_URI");
 if (!MONGO_URI) throw new Error("MONGO_URI not found");
@@ -28,8 +29,8 @@ const addContact = async ({
   request,
   response,
 }: {
-  request: any;
-  response: any;
+  request: Request;
+  response: Response;
 }) => {
   try {
     if (!request.hasBody) {
@@ -39,19 +40,25 @@ const addContact = async ({
         msg: "No Data",
       };
     } else {
-      const body = await request.body();
-      const contact = await body.value;
+      const body = request.body();
+      let contact = await body.value;
       if (body.type === "form") {
-        contact = Object.fromEntries(contact.entries);
+        contact = Object.fromEntries(contact.entries());
       } else if (body.type === "json") {
         contact = JSON.stringify(contact);
       }
       await contacts.insertOne(contact);
       response.status = 201;
-      response.body = {
-        success: true,
-        data: contact,
-      };
+      if (body.type === "form") {
+        response.body =
+          `<p style="color:white;text-align:center">Contact request sent!</p>`;
+        response.headers.set("Content-Type", "text/html");
+      } else if (body.type === "json") {
+        response.body = {
+          success: true,
+          data: contact,
+        };
+      }
     }
   } catch (err) {
     response.body = {
