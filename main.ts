@@ -1,3 +1,4 @@
+/// <reference lib="deno.unstable" />
 import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import addContact from "./controllers/contacts.ts";
 
